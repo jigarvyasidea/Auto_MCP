@@ -1,0 +1,35 @@
+name: 100 PR Request  Generator
+
+on:
+  workflow_dispatch:  # manual trigger
+  schedule:
+    - cron: "*/20 * * * *"   # every 20 minutes (change if needed)
+
+jobs:
+  create_prs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Make Random Change
+        run: |
+          FILE="auto_file_$(date +%s).txt"
+          echo "Auto content $(date)" > "$FILE"
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git checkout -b "auto-branch-$(date +%s)"
+          git add .
+          git commit -m "Auto PR - $(date)"
+
+      - name: Push Branch
+        run: git push origin HEAD
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "Automated PR - $(date)"
+          body: "This PR was created automatically 🚀"
+          base: "main"
